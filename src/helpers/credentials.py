@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import netrc
 import sys
@@ -18,4 +18,4 @@ def token():
     if user is None or password is None:
         sys.exit("Invalid netrc entry for %s" % MACHINE)
 
-    return "%s:%s" % (user, password)
+    return (user, password)

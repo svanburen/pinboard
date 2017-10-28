@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 from helpers import credentials
 import requests
@@ -12,10 +12,11 @@ USER_AGENT = """Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1)
 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1
 Safari/537.36""".replace("\n", " ")
 HEADERS = {"User-agent": USER_AGENT}
+AUTH = credentials.token()
 
 
 def ask(status, URL):
-    answer = raw_input("%d Delete %s y/N/o: " % (status, URL)).lower()
+    answer = input("%d Delete %s y/N/o: " % (status, URL)).lower()
     if answer.startswith("o"):
         webbrowser.open_new_tab(URL)
         return ask(status, URL)
@@ -23,31 +24,32 @@ def ask(status, URL):
         return answer.startswith("y")
 
 
-def params(merged):
-    return dict({"format": "json",
-                 "User-agent": USER_AGENT,
-                 "auth_token": credentials.token()}.items() + merged.items())
-
-
 class Bookmark(object):
     def __init__(self, item):
         self.url = item["href"]
 
     def delete(self):
-        requests.get(DELETE_URL, params=params({"url": self.url}))
+        requests.get(
+                DELETE_URL,
+                auth=AUTH,
+                params={"url": self.url, "format": "json"})
 
 
 def status_code(URL):
-    response = requests.head(URL, allow_redirects=True, headers=HEADERS)
+    response = requests.head(
+            URL,
+            auth=AUTH,
+            allow_redirects=True,
+            headers=HEADERS)
     if response.status_code < 400:
         return response.status_code
 
-    response = requests.get(URL, headers=HEADERS)
+    response = requests.get(URL, auth=AUTH, headers=HEADERS)
     return response.status_code
 
 
 def get_items():
-    response = requests.get(POSTS_URL, params=params({}))
+    response = requests.get(POSTS_URL, auth=AUTH, params={"format": "json"})
     return map(Bookmark, response.json())
 
 
